@@ -6,21 +6,21 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-int listare_nerec(const char *path, char string[20], int perm)
+void listare_nerec(const char *path, char string[20], int perm)
  {
  DIR *dir = NULL;
  struct dirent *entry = NULL;
  dir = opendir(path);
  if(dir == NULL) {
    perror("ERROR\ninvalid directory path");
-   return -1;
+   return;
    }
    else printf("SUCCESS\n");
  while((entry = readdir(dir)) != NULL) {
  if(strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0)
-  { 
+  {
      if(perm==1)
-     { 
+     {
        char filePath[512];
        struct stat buff;
        snprintf(filePath, 512, "%s/%s", path, entry->d_name);
@@ -42,10 +42,9 @@ int listare_nerec(const char *path, char string[20], int perm)
    }
   }
  closedir(dir);
- return 0;
  }
- 
- int listare_rec(const char *path, char string[20], int perm)
+
+ void listare_rec(const char *path, char string[20], int perm)
  {
  DIR *dir = NULL;
  struct dirent *entry = NULL;
@@ -55,12 +54,12 @@ int listare_nerec(const char *path, char string[20], int perm)
  dir = opendir(path);
     if(dir == NULL) {
      perror("ERROR\ninvalid directory path");
-    return -1;
+    return;
     }
     while((entry = readdir(dir)) != NULL) {
        if(strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) {
            snprintf(fullPath, 512, "%s/%s", path, entry->d_name);
-              if(perm==1){ 
+              if(perm==1){
                char filePath2[512];
                struct stat bufff;
                snprintf(filePath2, 512, "%s/%s", path, entry->d_name);
@@ -79,16 +78,15 @@ int listare_nerec(const char *path, char string[20], int perm)
         else{
             printf("%s/%s\n", path, entry->d_name);
             }
-      if(lstat(fullPath, &buff) == 0)      
+      if(lstat(fullPath, &buff) == 0)
        if(S_ISDIR(buff.st_mode)){
          listare_rec(fullPath, string, perm);
           }
            }
        }
        closedir(dir);
-       return 0;
     }
- 
+
 
 int main(int argc, char **argv){
     if(argc >= 2){
@@ -104,25 +102,25 @@ int main(int argc, char **argv){
              {if(strcmp (argv[i],"recursive")==0)
                 rec=1;
              if(strcmp (argv[i],"has_perm_write")==0)
-                perm=1;   
-              
+                perm=1;
+
              if(strncmp(argv[i], "name_ends_with=",15)==0)
-                  strcpy(string,argv[i]+15);           
-                 
+                  strcpy(string,argv[i]+15);
+
               if(strncmp(argv[i],"path=",5)==0)
-                  
+
                    strcpy(path,argv[i]+5);
-                       
+
             }
             if(rec==0)
-            { 
+            {
               listare_nerec(path, string, perm);
             }
-            else { if(listare_rec(path, string, perm)!=-1)
+            else {
               printf("SUCCESS\n");
               listare_rec(path, string, perm);
             }
-            
+
         }
 }
 
