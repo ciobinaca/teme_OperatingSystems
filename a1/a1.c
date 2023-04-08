@@ -5,6 +5,14 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <fcntl.h>
+
+typedef struct section_header{
+char name[14];
+int type;
+int offset;
+int size;
+}SH;
 
 void listare_nerec(const char *path, char string[20], int perm)
  {
@@ -87,42 +95,71 @@ void listare_nerec(const char *path, char string[20], int perm)
        closedir(dir);
     }
 
+void parse_file(const char* path)
+{
+  int fd1 = -1;
+  fd1 = open(path, O_RDONLY);
+  if(fd1 == -1) {
+  perror("Could not open input file");
+  return;}
+  else{
+  int size;
+  char magic;
+  lseek(fd1, -3, SEEK_END);
+  read(fd1, &size, 2);
+  read(fd1, &magic, 1);
+ // printf("%c", magic);
+  if(magic=='x')
+     {printf("ERROR\nwrong magic");
+      return;
+      }
+  
+  }
+  close(fd1);
+}
 
 int main(int argc, char **argv){
     if(argc >= 2){
-        if(strcmp(argv[1], "variant") == 0)
+      if(strcmp(argv[1], "variant") == 0)
             printf("44982\n");
-        else if(strcmp(argv[1], "list")==0)
+      else{
+           char path[512];
+           int perm=0;
+           int rec=0;
+           int list=0;
+           int parse=0;
+           char string[20];
+          for(int i=1;i<argc;i++)
             {
-             char* path=calloc(512,sizeof(char));
-             int perm=0;
-             int rec=0;
-             char string[20];
-             for(int i=2;i<argc;i++)
-             {if(strcmp (argv[i],"recursive")==0)
+             if(strcmp(argv[i], "list")==0)
+                list=1; 
+             if(strcmp (argv[i],"recursive")==0)
                 rec=1;
-             if(strcmp (argv[i],"has_perm_write")==0)
+              if(strcmp (argv[i],"has_perm_write")==0)
                 perm=1;
-
              if(strncmp(argv[i], "name_ends_with=",15)==0)
                   strcpy(string,argv[i]+15);
 
               if(strncmp(argv[i],"path=",5)==0)
-
                    strcpy(path,argv[i]+5);
+                   
+              if(strcmp(argv[i], "parse")==0)
+              parse=1;
 
             }
-            if(rec==0)
-            {
-              listare_nerec(path, string, perm);
-            }
-            else {
-              printf("SUCCESS\n");
-              listare_rec(path, string, perm);
-            }
-
-        }
+            if(list==1)
+             { if(rec==0)
+                listare_nerec(path, string, perm);
+              else {
+                printf("SUCCESS\n");
+                listare_rec(path, string, perm);
+                }
+             }
+           else if(parse==1)
+           {    
+             parse_file(path);     
+           } 
+   }
 }
-
     return 0;
 }
