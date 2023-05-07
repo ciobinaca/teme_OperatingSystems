@@ -14,8 +14,9 @@ typedef struct
     sem_t *logSem;
 } TH_STRUCT;
 
-int ok4=0,ok11=0,n=0;
-
+int ok4=0,ok11=0;
+pthread_mutex_t counter_mutex = PTHREAD_MUTEX_INITIALIZER;
+int active_threads = 0;
 void* thread_function(void* params)
 {
     TH_STRUCT* s=(TH_STRUCT*)params;
@@ -48,32 +49,44 @@ void* thread_function2(void* params)
 {
     TH_STRUCT *s=(TH_STRUCT*)params;
     sem_wait(s->logSem);
-//         n++;
+
+//    pthread_mutex_lock(&counter_mutex);
+//    active_threads++;
+//    pthread_mutex_unlock(&counter_mutex);
 //    if(s->nrThread==11)
 //    {
 //        info(BEGIN,4,11);
 //        ok11=1;
-//
-//     printf("%d\n",n);
-//
 //    }
-//    else if(ok11==1)
+//    else
 //    {
-//    for(int i=0;i<5;i++)
-//      {info(BEGIN,4,s->nrThread);
-//      info(END,4,s->nrThread);
-//      }
-//      ok11=0;
-//      info(END,4,11);}
-  //  else
-    //{
-      info(BEGIN,4,s->nrThread);
-      info(END,4,s->nrThread);
 
-   // }
+        info(BEGIN,4,s->nrThread);
+        info(END,4,s->nrThread);
+//        pthread_mutex_lock(&counter_mutex);
+//        active_threads--;
+//        pthread_mutex_unlock(&counter_mutex);
+//           if(active_threads==6&&ok11==1)
+//    {
+//        info(END,4,11);
+//        pthread_mutex_lock(&counter_mutex);
+//        active_threads--;
+//        ok11=0;
+//        pthread_mutex_unlock(&counter_mutex);
+//    }
+//    }
+
     sem_post(s->logSem);
     return NULL;
 }
+
+void* thread_function3(void* params)
+{
+    TH_STRUCT *s=(TH_STRUCT*)params;
+    info(BEGIN,5,s->nrThread);
+        info(END,5,s->nrThread);
+       return NULL;
+        }
 
 int main()
 {
@@ -86,10 +99,12 @@ int main()
 
     pthread_t tid[NR_THREADS];
     pthread_t tid2[NR_THREADS2];
+    pthread_t tid3[5];
     int i;
 
     TH_STRUCT params[NR_THREADS];
     TH_STRUCT params2[NR_THREADS2];
+    TH_STRUCT params3[5];
     pid_t pid2,pid3,pid4,pid8,pid5,pid6,pid7;
     pid2 = fork();
     if(pid2 == 0)
@@ -149,6 +164,16 @@ int main()
                     else
                     {
                         wait(NULL);
+                        for(i=0; i<5; i++)
+
+            {
+                params3[i].nrThread=i+1;
+                //params3[i].logSem=&logSem2;
+                pthread_create(&tid3[i], NULL, thread_function3, &params3[i]);
+            }
+
+            for(i=0; i<5; i++)
+                pthread_join(tid3[i], NULL);
                         info(END, 5, 0);
                     }
                 }
